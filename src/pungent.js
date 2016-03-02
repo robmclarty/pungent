@@ -12,8 +12,8 @@
 export function curry(fn) {
   return function accumulator(...args) {
     return args.length >= fn.length ?
-      fn.call(this, ...args) :
-      (...rest) => accumulator.call(this, ...args, ...rest);
+      fn.call(fn, ...args) :
+      (...rest) => accumulator.call(fn, ...args, ...rest);
   }
 }
 
@@ -21,7 +21,7 @@ export function curry(fn) {
 // parameters. This is "partial application".
 export function partial(fn, ...partialArgs) {
   return (...remainingArgs) => {
-    return fn.call(this, ...partialArgs, ...remainingArgs);
+    return fn.call(fn, ...partialArgs, ...remainingArgs);
   };
 }
 
@@ -37,6 +37,30 @@ export function compose(...funcs) {
   }
 }
 
+/**
+ * Composes single-argument functions from right to left. The rightmost
+ * function can take multiple arguments as it provides the signature for
+ * the resulting composite function.
+ *
+ * @param {...Function} funcs The functions to compose.
+ * @returns {Function} A function obtained by composing the argument functions
+ * from right to left. For example, compose(f, g, h) is identical to doing
+ * (...args) => f(g(h(...args))).
+ */
+
+// export default function compose(...funcs) {
+//   return (...args) => {
+//     if (funcs.length === 0) {
+//       return args[0]
+//     }
+
+//     const last = funcs[funcs.length - 1]
+//     const rest = funcs.slice(0, -1)
+
+//     return rest.reduceRight((composed, f) => f(composed), last(...args))
+//   }
+// }
+
 // Same as compose except run functions from left to right.
 export function pipe(...funcArgs) {
   const funcs = Array.from(funcArgs);
@@ -45,17 +69,17 @@ export function pipe(...funcArgs) {
 }
 
 // Apply a function all all values in a list.
-export function map(fn, [x, ...xs]) {
+export function map(transform, [x, ...xs]) {
   return !x ?
     [] :
-    [fn(x), ...map(fn, xs)];
+    [transform(x), ...map(transform, xs)];
 }
 
-export function filter(fn, items) {
+export function filter(compare, items) {
   const filtered = [];
 
   items.forEach((item) => {
-    if (fn(item)) {
+    if (compare(item)) {
       filtered.push(item);
     }
   });
@@ -71,4 +95,16 @@ export function reduce(combine, base, items) {
   });
 
   return accumulator;
+}
+
+export function memoize(fn) {
+  const cache = {};
+
+  return (...args) => {
+    const argStr = JSON.stringify(args);
+
+    cache[argStr] = cache[argStr] || fn.call(fn, ...args);
+
+    return cache[argStr];
+  };
 }
