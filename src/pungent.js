@@ -63,6 +63,12 @@ export function filter(fn, items) {
   return filtered;
 }
 
-export function reduce() {
+export function reduce(combine, base, items) {
+  let accumulator = base;
 
+  items.forEach((item) => {
+    accumulator = combine(accumulator, item);
+  });
+
+  return accumulator;
 }
