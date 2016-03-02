@@ -14,7 +14,7 @@ export function curry(fn) {
     return args.length >= fn.length ?
       fn.call(this, ...args) :
       (...rest) => accumulator.call(this, ...args, ...rest);
-  }
+  };
 }
 
 // Take a function with multiple parameters and return a function with fewer
